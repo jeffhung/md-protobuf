@@ -16,6 +16,9 @@ from google.protobuf.descriptor import FieldDescriptor
 import re, sys
 from jinja2 import Template, Environment
 import hashlib
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 FIELD_LABEL_MAP = {
     FieldDescriptor.LABEL_OPTIONAL: 'optional',
@@ -64,24 +67,24 @@ def md_pad(string, count):
 def format_comment(string):
     return '\n'.join(map(lambda x:x.strip().lstrip('*'), string.split('\n')))
 
+# According to
+# https://www.oracle.com/technetwork/articles/java/index-137868.html:
+# "The first sentence of each doc comment should be a summary sentence,
+# containing a concise but complete description of the API item. This sentence
+# ends at the first period that is followed by a blank, tab, or line terminator,
+# or at the first tag."
 def first_sentence(string):
-    lines = string.split('\n')
-    sentence = list()
-    for line in lines:
-        if re.match(r'^\s*$', line):
-            if len(sentence) > 0:
-                break
-            else:
-                continue
-        if re.match(r'^\s*@', line):
-            break
-        dot = line.find('.')
-        if dot >= 0:
-            sentence.append(line[0:dot + 1])
-            break
-        else:
-            sentence.append(line)
-    return ' '.join(sentence)
+    """Extract first sentence from javadoc-liked comment string."""
+    m = re.search(r'(\.(\s+|$)|@|\n\n|$)', string)
+    logger.debug(m)
+    if m:
+        logger.debug(m.groups())
+        stop = m.end(1)
+        if m.group(1).startswith('@'):
+            stop -= 1
+        sentence = string[0:stop]
+        return sentence.replace('\n', ' ').strip()
+    return ''
 
 def first_line(string):
     return string.split('\n')[0]
