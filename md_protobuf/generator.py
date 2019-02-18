@@ -106,7 +106,10 @@ def format_field_descriptor(fd, path):
     list = []
     for idx, value in enumerate(fd):
         spath = path + ',2,%d'%idx
-        type = value.type_name.split(".")[-1] if value.type_name else FIELD_TYPE_MAP[value.type]
+        if value.type_name:
+            type = "[%s](#%s)" % (value.type_name.split(".")[-1], value.type_name)
+        else:
+            type = FIELD_TYPE_MAP[value.type]
         comment = first_line(format_comment(comments[spath])) if spath in comments else ''
         list.append([FIELD_LABEL_MAP[value.label], type, value.name, comment])
     return make_table(['Modifier', 'Type', 'Key', 'Description'], list)
