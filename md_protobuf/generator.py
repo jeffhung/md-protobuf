@@ -75,13 +75,13 @@ def format_comment(string):
 # or at the first tag."
 def first_sentence(string):
     """Extract first sentence from javadoc-liked comment string."""
-    m = re.search(r'(\.(\s+|$)|@|\n\n|$)', string)
+    m = re.search(r'(\.(\s+|$)|@|\n\s*\n|$)', string)
     logger.debug(m)
     if m:
         logger.debug(m.groups())
-        stop = m.end(1)
-        if m.group(1).startswith('@'):
-            stop -= 1
+        stop = m.start(1)
+        if m.group(1).startswith('.'):
+            stop += 1
         sentence = string[0:stop]
         return sentence.replace('\n', ' ').strip()
     return ''
