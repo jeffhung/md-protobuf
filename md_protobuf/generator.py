@@ -64,6 +64,25 @@ def md_pad(string, count):
 def format_comment(string):
     return '\n'.join(map(lambda x:x.strip().lstrip('*'), string.split('\n')))
 
+def first_sentence(string):
+    lines = string.split('\n')
+    sentence = list()
+    for line in lines:
+        if re.match(r'^\s*$', line):
+            if len(sentence) > 0:
+                break
+            else:
+                continue
+        if re.match(r'^\s*@', line):
+            break
+        dot = line.find('.')
+        if dot >= 0:
+            sentence.append(line[0:dot + 1])
+            break
+        else:
+            sentence.append(line)
+    return ' '.join(sentence)
+
 def first_line(string):
     return string.split('\n')[0]
     
@@ -95,7 +114,7 @@ def format_const_list(fd, path):
     list = []
     for idx, value in enumerate(fd):
         spath = '4,0,' + path + ',2,%d'%idx
-        comment = first_line(format_comment(comments[spath])) if spath in comments else ''
+        comment = first_sentence(format_comment(comments[spath])) if spath in comments else ''
         list.append([value.name, '%d'%value.number, comment])
     return make_table(['Possible values', 'Value', 'Description'], list)
 
@@ -110,7 +129,7 @@ def format_field_descriptor(fd, path):
             type = "[%s](#%s)" % (value.type_name.split(".")[-1], value.type_name)
         else:
             type = FIELD_TYPE_MAP[value.type]
-        comment = first_line(format_comment(comments[spath])) if spath in comments else ''
+        comment = first_sentence(format_comment(comments[spath])) if spath in comments else ''
         list.append([FIELD_LABEL_MAP[value.label], type, value.name, comment])
     return make_table(['Modifier', 'Type', 'Key', 'Description'], list)
 
@@ -152,6 +171,7 @@ def document_file(file_descriptor, title=None):
     env.filters['remove_prefix'] = remove_prefix
     env.filters['md_pad'] = md_pad
     env.filters['format_comment'] = format_comment
+    env.filters['first_sentence'] = first_sentence
     env.filters['first_line'] = first_line
     env.filters['format_const_list'] = format_const_list
     env.filters['format_field_descriptor'] = format_field_descriptor

@@ -20,6 +20,8 @@ setup(
     packages         = [ 'md_protobuf' ],
     scripts          = ['protoc-gen-md', 'protoc-gen-md.cmd'],
     install_requires = [ 'protobuf>=2.3.0' ],
+    setup_requires   = [ 'pytest-runner' ],
+    tests_require    = [ 'pytest' ],
     author           = 'Gregory Szorc',
     author_email     = 'gregory.szorc@gmail.com',
     description      = 'Markdown protocol buffer code generator',
