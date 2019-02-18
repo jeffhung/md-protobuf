@@ -16,9 +16,6 @@ from google.protobuf.descriptor import FieldDescriptor
 import re, sys
 from jinja2 import Template, Environment
 import hashlib
-import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 FIELD_LABEL_MAP = {
     FieldDescriptor.LABEL_OPTIONAL: 'optional',
@@ -76,9 +73,7 @@ def format_comment(string):
 def first_sentence(string):
     """Extract first sentence from javadoc-liked comment string."""
     m = re.search(r'(\.(\s+|$)|@|\n\s*\n|$)', string)
-    logger.debug(m)
     if m:
-        logger.debug(m.groups())
         stop = m.start(1)
         if m.group(1).startswith('.'):
             stop += 1
