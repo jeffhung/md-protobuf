@@ -111,7 +111,7 @@ def format_const_list(fd, path):
     global comments
     list = []
     for idx, value in enumerate(fd):
-        spath = '4,0,' + path + ',2,%d'%idx
+        spath = path + ',2,%d'%idx
         comment = first_sentence(format_comment(comments[spath])) if spath in comments else ''
         list.append([value.name, '%d'%value.number, comment])
     return make_table(['Possible values', 'Value', 'Description'], list)
@@ -138,19 +138,25 @@ HEADER_TPL = """{% macro gen_message(desc, level, path, trail) -%}
 
 `{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment}}{% endif %}
 
-{% for field_descriptor in desc.enum_type -%}{% set spath = path + ',4,%d'%loop.index0 -%}
-### {{field_descriptor.name}}
-
-{% if COMMENTS[spath] -%}{{COMMENTS[spath]|format_comment}}
-{% endif %}
-{{field_descriptor.value|format_const_list(path)}}
-
-{% endfor -%}
 {{desc.field|format_field_descriptor(path)}}
+{% for edesc in desc.enum_type  -%}{{ gen_enumtype(edesc, level+1, "%s,4,%d"%(path, loop.index0), trail) }}{% endfor %}
 {% for sdesc in desc.nested_type -%}{{ gen_message(sdesc, level+1, "%s,3,%d"%(path, loop.index0), trail) }}{% endfor %}
+{%- endmacro %}
+
+{% macro gen_enumtype(desc, level, path, trail) -%}
+{% set trail = trail + '.' + desc.name -%}
+<a name=".{{trail}}"></a>
+{{ '#'*level }} {{trail|remove_prefix}}
+
+`{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment}}{% endif %}
+
+{{desc.value|format_const_list(path)}}
 {%- endmacro %}
 # {% if title -%}{{title}}{% else %}API Reference{% endif %}
 
+{% for edesc in desc.enum_type %}
+{{ gen_enumtype(edesc, 2, "5,%d"%loop.index0, desc.package) }}
+{% endfor -%}
 {% for sdesc in desc.message_type %}
 {{ gen_message(sdesc, 2, "4,%d"%loop.index0, desc.package) }}
 {% endfor %}
