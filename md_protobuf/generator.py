@@ -127,9 +127,10 @@ def format_field_descriptor(fd, path):
             type = "[%s](#%s)" % (value.type_name.split(".")[-1], value.type_name)
         else:
             type = FIELD_TYPE_MAP[value.type]
+        default = '`%s`' % value.default_value if value.default_value else ''
         comment = first_sentence(format_comment(comments[spath])) if spath in comments else ''
-        list.append([FIELD_LABEL_MAP[value.label], type, value.name, comment])
-    return make_table(['Modifier', 'Type', 'Key', 'Description'], list)
+        list.append([FIELD_LABEL_MAP[value.label], type, value.name, default, comment])
+    return make_table(['Modifier', 'Type', 'Key', 'Default Value', 'Description'], list)
 
 HEADER_TPL = """{% macro gen_message(desc, level, path, trail) -%}
 {% set trail = trail + '.' + desc.name -%}
