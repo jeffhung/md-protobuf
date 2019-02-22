@@ -16,6 +16,9 @@ from google.protobuf.descriptor import FieldDescriptor
 import re, sys
 from jinja2 import Template, Environment
 import hashlib
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 FIELD_LABEL_MAP = {
     FieldDescriptor.LABEL_OPTIONAL: 'optional',
@@ -132,12 +135,23 @@ def format_field_descriptor(fd, path):
         list.append([FIELD_LABEL_MAP[value.label], type, value.name, default, comment])
     return make_table(['Modifier', 'Type', 'Key', 'Default Value', 'Description'], list)
 
+def titlize_directives(text):
+    def titlize(match):
+        """match.group(1) should be the match object of the directive name"""
+#       repl = ''.join([ '#' * (level + 1), ' ', match.group(1).capitalize() ])
+        repl = [ '**', match.group(1).replace('_', ' ').title(), '**' ]
+        if match.group(3):
+            repl.extend([ ': ', '`', match.group(3), '`' ])
+        return ''.join(["\n"] + repl + ["\n"])
+    rx = re.compile(r'^[ \t]*@(\w+)([ \t]+(.*))?[ \t]*$', re.MULTILINE)
+    return rx.sub(titlize, text)
+
 HEADER_TPL = """{% macro gen_message(desc, level, path, trail) -%}
 {% set trail = trail + '.' + desc.name -%}
 <a name=".{{trail}}"></a>
 {{ '#'*level }} {{trail|remove_prefix}}
 
-`{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment}}{% endif %}
+`{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment|titlize_directives}}{% endif %}
 
 {{desc.field|format_field_descriptor(path)}}
 {% for edesc in desc.enum_type  -%}{{ gen_enumtype(edesc, level+1, "%s,4,%d"%(path, loop.index0), trail) }}{% endfor %}
@@ -149,7 +163,7 @@ HEADER_TPL = """{% macro gen_message(desc, level, path, trail) -%}
 <a name=".{{trail}}"></a>
 {{ '#'*level }} {{trail|remove_prefix}}
 
-`{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment}}{% endif %}
+`{{trail}}` {% if COMMENTS[path] -%}{{COMMENTS[path]|format_comment|titlize_directives}}{% endif %}
 
 {{desc.value|format_const_list(path)}}
 {%- endmacro %}
@@ -180,6 +194,7 @@ def document_file(file_descriptor, title=None):
     env.filters['first_line'] = first_line
     env.filters['format_const_list'] = format_const_list
     env.filters['format_field_descriptor'] = format_field_descriptor
+    env.filters['titlize_directives'] = titlize_directives
     
     comments = make_paths(file_descriptor.source_code_info)
     template = env.from_string(HEADER_TPL)
