@@ -19,7 +19,7 @@ setup(
     version          = '0.0.1',
     packages         = [ 'md_protobuf' ],
     scripts          = ['protoc-gen-md', 'protoc-gen-md.cmd'],
-    install_requires = [ 'protobuf>=2.3.0' ],
+    install_requires = [ 'protobuf>=2.3.0', 'jinja2' ],
     setup_requires   = [ 'pytest-runner' ],
     tests_require    = [ 'pytest' ],
     author           = 'Gregory Szorc',
